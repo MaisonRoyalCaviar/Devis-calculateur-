@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Maison Royal Caviar — Calculateur de devis</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f4f0; color: #1a1a1a; padding: 16px; max-width: 680px; margin: 0 auto; }
+h1 { font-size: 20px; font-weight: 500; margin-bottom: 2px; letter-spacing: -0.01em; }
+.subtitle { font-size: 13px; color: #888; margin-bottom: 20px; }
+.section-title { font-size: 10px; font-weight: 600; color: #888; text-transform: uppercase; letter-spacing: 0.09em; margin: 0 0 10px; }
+.pill-group { display: flex; flex-wrap: wrap; gap: 6px; }
+.pill { padding: 7px 14px; border-radius: 20px; border: 1px solid #ddd; background: #fff; font-size: 13px; color: #666; cursor: pointer; transition: all 0.15s; -webkit-tap-highlight-color: transparent; }
+.pill:hover { border-color: #999; color: #1a1a1a; }
+.pill.active { background: #1a1a1a; color: #fff; border-color: #1a1a1a; font-weight: 500; }
+.card { background: #fff; border: 1px solid #e8e6e0; border-radius: 14px; padding: 14px 16px; margin-bottom: 10px; }
+.divider { border: none; border-top: 1px solid #e8e6e0; margin: 12px 0; }
+.breakdown-row { display: flex; justify-content: space-between; font-size: 13px; padding: 4px 0; }
+.breakdown-row span:first-child { color: #888; }
+.breakdown-row span:last-child { color: #1a1a1a; font-weight: 500; }
+.stepper { display: flex; align-items: center; gap: 12px; }
+.step-btn { width: 32px; height: 32px; border-radius: 50%; border: 1px solid #ddd; background: #fff; cursor: pointer; font-size: 18px; color: #1a1a1a; display: flex; align-items: center; justify-content: center; -webkit-tap-highlight-color: transparent; }
+.step-btn:active { background: #f0f0f0; }
+.step-val { font-size: 20px; font-weight: 500; min-width: 32px; text-align: center; }
+.hotel-row, .toggle-row { display: flex; align-items: center; gap: 8px; font-size: 13px; color: #666; margin-top: 9px; }
+.toggle-row input[type=checkbox], .hotel-row input[type=checkbox] { width: 16px; height: 16px; cursor: pointer; accent-color: #1a1a1a; }
+.per-person { font-size: 12px; color: #888; margin-top: 7px; }
+.est-result { background: #f5f4f0; border-radius: 10px; padding: 12px 14px; margin-top: 10px; }
+.est-main { font-size: 13px; font-weight: 500; color: #1a1a1a; }
+.est-sub { font-size: 12px; color: #888; margin-top: 3px; }
+.est-badges { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; }
+.est-badge { font-size: 11px; font-weight: 500; padding: 3px 10px; border-radius: 12px; background: #fff; border: 1px solid #ddd; color: #888; }
+.est-badge.recommended { background: #1a1a1a; color: #fff; border-color: #1a1a1a; }
+.apply-btn { width: 100%; margin-top: 10px; padding: 10px; border-radius: 10px; border: 1px solid #ddd; background: #fff; font-size: 13px; font-weight: 500; color: #1a1a1a; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.apply-btn:active { background: #f0f0f0; }
+.total-card { background: #1a1a1a; border-radius: 14px; padding: 18px 18px; margin-bottom: 10px; }
+.total-label { font-size: 11px; color: rgba(255,255,255,0.55); margin-bottom: 5px; letter-spacing: 0.04em; }
+.total-value { font-size: 36px; font-weight: 500; color: #fff; letter-spacing: -0.02em; }
+.total-detail { font-size: 12px; color: rgba(255,255,255,0.45); margin-top: 3px; }
+.result-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+.result-metric { background: #f0ede8; border-radius: 10px; padding: 12px 14px; }
+.result-metric.highlight { background: #fff; border: 1px solid #e8e6e0; }
+.rm-label { font-size: 10px; color: #888; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.07em; }
+.rm-value { font-size: 19px; font-weight: 500; color: #1a1a1a; }
+.rm-value.green { color: #0a6647; }
+.rm-value.amber { color: #7a4a08; }
+.rm-sub { font-size: 11px; color: #888; margin-top: 3px; }
+.is-note { font-size: 11px; color: #888; font-style: italic; padding: 9px 12px; background: #f5f4f0; border-radius: 10px; margin-bottom: 10px; line-height: 1.5; }
+.coeff-labels { display: flex; justify-content: space-between; font-size: 10px; color: #aaa; margin-top: 5px; }
+input[type=range] { width: 100%; accent-color: #1a1a1a; margin-top: 6px; }
+.section-gap { margin-top: 16px; }
+</style>
+</head>
+<body>
+
+<h1>Maison Royal Caviar</h1>
+<p class="subtitle">Calculateur de devis — usage interne</p>
+
+<div class="card">
+  <p class="section-title">Estimation du service</p>
+  <div class="stepper" style="margin-bottom:12px;">
+    <button class="step-btn" onclick="changeConvives(-5)">−</button>
+    <span class="step-val" id="conv-count">20</span>
+    <button class="step-btn" onclick="changeConvives(5)">+</button>
+    <span style="font-size:13px;color:#888;">convives</span>
+  </div>
+  <div class="pill-group" id="format-pills">
+    <div class="pill active" data-passages="2" data-gpp="3" onclick="selectFormat(this)">Légère · 2×3g</div>
+    <div class="pill" data-passages="3" data-gpp="4" onclick="selectFormat(this)">Standard · 3×4g</div>
+    <div class="pill" data-passages="4" data-gpp="5" onclick="selectFormat(this)">Généreuse · 4×5g</div>
+  </div>
+  <div class="est-result">
+    <div class="est-main" id="est-main">—</div>
+    <div class="est-sub" id="est-sub">—</div>
+    <div class="est-badges" id="est-badges"></div>
+    <button class="apply-btn" onclick="applyEstimation()">Appliquer ce grammage dans le calculateur ↓</button>
+  </div>
+</div>
+
+<div class="card">
+  <p class="section-title">Caviar</p>
+  <div class="pill-group" id="caviar-pills">
+    <div class="pill active" data-value="baeri" onclick="selectPill(this,'caviar')">Baeri</div>
+    <div class="pill" data-value="oscietre" onclick="selectPill(this,'caviar')">Osciètre</div>
+    <div class="pill" data-value="sevruga" onclick="selectPill(this,'caviar')">Sevruga</div>
+    <div class="pill" data-value="beluga" onclick="selectPill(this,'caviar')">Béluga</div>
+  </div>
+</div>
+
+<div class="card">
+  <p class="section-title">Grammage total commandé</p>
+  <div class="pill-group" id="grammage-pills">
+    <div class="pill active" data-value="100" onclick="selectPill(this,'grammage')">100g</div>
+    <div class="pill" data-value="250" onclick="selectPill(this,'grammage')">250g</div>
+    <div class="pill" data-value="300" onclick="selectPill(this,'grammage')">300g</div>
+    <div class="pill" data-value="400" onclick="selectPill(this,'grammage')">400g</div>
+    <div class="pill" data-value="500" onclick="selectPill(this,'grammage')">500g</div>
+    <div class="pill" data-value="600" onclick="selectPill(this,'grammage')">600g</div>
+    <div class="pill" data-value="700" onclick="selectPill(this,'grammage')">700g</div>
+    <div class="pill" data-value="800" onclick="selectPill(this,'grammage')">800g</div>
+    <div class="pill" data-value="1000" onclick="selectPill(this,'grammage')">1 kg</div>
+    <div class="pill" data-value="1200" onclick="selectPill(this,'grammage')">1,2 kg</div>
+    <div class="pill" data-value="1500" onclick="selectPill(this,'grammage')">1,5 kg</div>
+    <div class="pill" data-value="1800" onclick="selectPill(this,'grammage')">1,8 kg</div>
+    <div class="pill" data-value="2000" onclick="selectPill(this,'grammage')">2 kg</div>
+  </div>
+  <div class="per-person" id="par-personne">→ — g / personne</div>
+</div>
+
+<div class="card">
+  <p class="section-title">Accompagnements</p>
+  <div class="toggle-row">
+    <input type="checkbox" id="blinis-check" checked onchange="calculate()">
+    <label for="blinis-check">Blinis — 10€ / 30 personnes</label>
+  </div>
+  <div class="toggle-row">
+    <input type="checkbox" id="creme-check" checked onchange="calculate()">
+    <label for="creme-check">Crème fraîche — 10€ / 30 personnes</label>
+  </div>
+</div>
+
+<div class="card">
+  <p class="section-title">Nombre de staff</p>
+  <div class="stepper">
+    <button class="step-btn" onclick="changeVal('staff',-1)">−</button>
+    <span class="step-val" id="staff-count">1</span>
+    <button class="step-btn" onclick="changeVal('staff',1)">+</button>
+    <span style="font-size:13px;color:#888;">personne(s)</span>
+  </div>
+</div>
+
+<div class="card">
+  <p class="section-title">Destination</p>
+  <div class="pill-group" id="dest-pills">
+    <div class="pill active" data-value="paris" onclick="selectPill(this,'dest')">Paris / Île-de-France</div>
+    <div class="pill" data-value="cannes" onclick="selectPill(this,'dest')">Cannes</div>
+    <div class="pill" data-value="saint-tropez" onclick="selectPill(this,'dest')">Saint-Tropez</div>
+    <div class="pill" data-value="monaco" onclick="selectPill(this,'dest')">Monaco</div>
+    <div class="pill" data-value="londres" onclick="selectPill(this,'dest')">Londres</div>
+    <div class="pill" data-value="usa" onclick="selectPill(this,'dest')">États-Unis</div>
+  </div>
+  <div id="hotel-option" style="display:none;" class="hotel-row">
+    <input type="checkbox" id="hotel-check" onchange="calculate()" checked>
+    <label for="hotel-check">Inclure 1 nuit d'hôtel (300€)</label>
+  </div>
+</div>
+
+<div class="card">
+  <p class="section-title">Coefficient de marge</p>
+  <div style="display:flex;align-items:center;gap:12px;">
+    <span style="font-size:13px;color:#888;flex:1;">Coefficient appliqué sur le total</span>
+    <span style="font-size:16px;font-weight:500;min-width:44px;text-align:right;" id="coeff-display">×1.50</span>
+  </div>
+  <input type="range" min="1.5" max="4.0" step="0.05" value="1.5" id="coeff-range" oninput="updateCoeff(this.value)">
+  <div class="coeff-labels">
+    <span>×1.50</span><span>×2.00</span><span>×2.50</span><span>×3.00</span><span>×3.50</span><span>×4.00</span>
+  </div>
+</div>
+
+<div class="card">
+  <p class="section-title">Détail des coûts</p>
+  <div class="breakdown-row"><span>Caviar (<span id="bd-grammage">100</span>g · <span id="bd-caviar">Baeri</span>)</span><span id="bd-caviar-prix">—</span></div>
+  <div class="breakdown-row"><span>Staff (<span id="bd-staff">1</span> pers. × <span id="bd-heures">2</span>h × 150€)</span><span id="bd-staff-prix">—</span></div>
+  <div class="breakdown-row" id="bd-blinis-row"><span>Blinis (<span id="bd-blinis-conv">20</span> pers.)</span><span id="bd-blinis-prix">—</span></div>
+  <div class="breakdown-row" id="bd-creme-row"><span>Crème fraîche (<span id="bd-creme-conv">20</span> pers.)</span><span id="bd-creme-prix">—</span></div>
+  <div class="breakdown-row" id="bd-dep-row" style="display:none;"><span>Déplacement (<span id="bd-dest-label">—</span>)</span><span id="bd-dep-prix">—</span></div>
+  <div class="divider"></div>
+  <div class="breakdown-row"><span style="color:#1a1a1a;font-weight:500;">Coût total HT</span><span id="bd-total-ht">—</span></div>
+  <div class="breakdown-row"><span>Marge appliquée (×<span id="bd-coeff">1.50</span>)</span><span id="bd-marge">—</span></div>
+</div>
+
+<div class="total-card">
+  <div class="total-label">PRIX CLIENT SUGGÉRÉ HT</div>
+  <div class="total-value" id="prix-final">—</div>
+  <div class="total-detail" id="prix-ttc">—</div>
+  <div style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.12);display:flex;justify-content:space-between;align-items:center;">
+    <span style="font-size:12px;color:rgba(255,255,255,0.5);">Par convive</span>
+    <span style="font-size:15px;font-weight:500;color:#fff;" id="prix-par-convive">—</span>
+  </div>
+</div>
+
+<div class="card">
+  <p class="section-title">Commission intermédiaire</p>
+  <div class="toggle-row" style="margin-bottom:10px;">
+    <input type="checkbox" id="commission-check" onchange="toggleCommission()">
+    <label for="commission-check">Appliquer une commission sur le CA</label>
+  </div>
+  <div id="commission-options" style="display:none;">
+    <div class="pill-group" id="commission-pills">
+      <div class="pill active" data-value="15" onclick="selectCommission(this)">15%</div>
+      <div class="pill" data-value="20" onclick="selectCommission(this)">20%</div>
+      <div class="pill" data-value="30" onclick="selectCommission(this)">30%</div>
+    </div>
+    <div style="font-size:12px;color:#888;margin-top:8px;" id="commission-info">—</div>
+  </div>
+</div>
+
+<p class="section-title section-gap">Résultat financier — prestation</p>
+
+<div class="result-grid">
+  <div class="result-metric">
+    <div class="rm-label">Chiffre d'affaires HT</div>
+    <div class="rm-value" id="res-ca">—</div>
+    <div class="rm-sub">Prix facturé client</div>
+  </div>
+  <div class="result-metric">
+    <div class="rm-label">Charges totales</div>
+    <div class="rm-value" id="res-charges">—</div>
+    <div class="rm-sub">Tous coûts inclus</div>
+  </div>
+  <div class="result-metric highlight">
+    <div class="rm-label" id="benefice-label">Bénéfice brut</div>
+    <div class="rm-value green" id="res-benefice">—</div>
+    <div class="rm-sub" id="res-marge-pct">—</div>
+  </div>
+  <div class="result-metric">
+    <div class="rm-label">IS estimé</div>
+    <div class="rm-value amber" id="res-is">—</div>
+    <div class="rm-sub" id="res-is-taux">—</div>
+  </div>
+</div>
+
+<div class="total-card">
+  <div class="total-label">RÉSULTAT NET APRÈS IS</div>
+  <div class="total-value" id="res-net">—</div>
+  <div class="total-detail" id="res-net-pct">— reste en réserves SASU</div>
+</div>
+
+<div class="is-note" id="is-note">—</div>
+
+<script>
+const state = { caviar:'baeri', grammage:100, convives:20, duree:2, staff:1, dest:'paris', coeff:1.5, passages:2, gpp:3, commission:0 };
+const paliers = [100,250,300,400,500,600,700,800,1000,1200,1500,1800,2000];
+const caviarPrix  = { baeri:530, oscietre:630, sevruga:730, beluga:1500 };
+const caviarLabel = { baeri:'Baeri', oscietre:'Osciètre', sevruga:'Sevruga', beluga:'Béluga' };
+const deplacement = {
+  paris:          { label:'Paris / Île-de-France', transport:0,   hotel:false },
+  cannes:         { label:'Cannes',                transport:312, hotel:true  },
+  'saint-tropez': { label:'Saint-Tropez',          transport:312, hotel:true  },
+  monaco:         { label:'Monaco',                transport:312, hotel:true  },
+  londres:        { label:'Londres',               transport:450, hotel:true  },
+  usa:            { label:'États-Unis',            transport:950, hotel:true  }
+};
+
+function getPalier(g) { return paliers.find(p => p >= g) || paliers[paliers.length-1]; }
+function fmt(n) { return Math.round(n).toLocaleString('fr-FR') + ' €'; }
+function pct(n) { return Math.round(n) + '%'; }
+
+function changeConvives(delta) {
+  state.convives = Math.max(5, Math.min(500, state.convives + delta));
+  document.getElementById('conv-count').textContent = state.convives;
+  updateEstimation();
+}
+function changeVal(key, delta) {
+  if (key === 'staff') state.staff = Math.max(1, Math.min(20, state.staff + delta));
+  document.getElementById('staff-count').textContent = state.staff;
+  calculate();
+}
+function updateCoeff(val) {
+  state.coeff = parseFloat(val);
+  document.getElementById('coeff-display').textContent = '×' + state.coeff.toFixed(2);
+  calculate();
+}
+function selectPill(el, group) {
+  const ids = { caviar:'caviar-pills', grammage:'grammage-pills', duree:'duree-pills', dest:'dest-pills' };
+  document.getElementById(ids[group]).querySelectorAll('.pill').forEach(p => {
+    p.classList.remove('active');
+    p.style.border = '';
+    p.style.color  = '';
+  });
+  el.classList.add('active');
+  if (group === 'caviar')   state.caviar   = el.dataset.value;
+  if (group === 'grammage') state.grammage = parseInt(el.dataset.value);
+  if (group === 'duree')    state.duree    = parseInt(el.dataset.value);
+  if (group === 'dest') {
+    state.dest = el.dataset.value;
+    const d = deplacement[state.dest];
+    const ho = document.getElementById('hotel-option');
+    if (state.dest === 'paris') { ho.style.display = 'none'; }
+    else { ho.style.display = 'flex'; document.getElementById('hotel-check').checked = d.hotel; }
+  }
+  calculate();
+}
+function selectFormat(el) {
+  document.getElementById('format-pills').querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  state.passages = parseInt(el.dataset.passages);
+  state.gpp      = parseInt(el.dataset.gpp);
+  updateEstimation();
+}
+function updateEstimation() {
+  const grBrut  = state.convives * state.passages * state.gpp;
+  const palier  = getPalier(grBrut);
+  const grPers  = Math.round(grBrut / state.convives);
+  const palierLabel = palier >= 1000 ? (palier/1000).toLocaleString('fr-FR') + ' kg' : palier + 'g';
+  document.getElementById('est-main').textContent = grBrut + 'g exact → palier recommandé : ' + palierLabel;
+  document.getElementById('est-sub').textContent  = state.convives + ' convives · ' + state.passages + ' passages · ' + state.gpp + 'g/passage = ' + grPers + 'g/pers.';
+  const badges = document.getElementById('est-badges');
+  badges.innerHTML = '';
+  paliers.forEach(p => {
+    const b = document.createElement('span');
+    b.className = 'est-badge' + (p === palier ? ' recommended' : '');
+    b.textContent = p >= 1000 ? (p/1000).toLocaleString('fr-FR') + 'kg' : p + 'g';
+    badges.appendChild(b);
+  });
+  document.getElementById('grammage-pills').querySelectorAll('.pill').forEach(p => {
+    if (!p.classList.contains('active')) {
+      p.style.border = parseInt(p.dataset.value) === palier ? '1.5px dashed #999' : '';
+      p.style.color  = parseInt(p.dataset.value) === palier ? '#1a1a1a' : '';
+    }
+  });
+  calculate();
+}
+function applyEstimation() {
+  const palier = getPalier(state.convives * state.passages * state.gpp);
+  state.grammage = palier;
+  document.getElementById('grammage-pills').querySelectorAll('.pill').forEach(p => {
+    p.classList.remove('active'); p.style.border = ''; p.style.color = '';
+    if (parseInt(p.dataset.value) === palier) p.classList.add('active');
+  });
+  calculate();
+}
+function toggleCommission() {
+  const on = document.getElementById('commission-check').checked;
+  document.getElementById('commission-options').style.display = on ? 'block' : 'none';
+  if (!on) state.commission = 0;
+  else state.commission = 15;
+  calculate();
+}
+function selectCommission(el) {
+  document.getElementById('commission-pills').querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  state.commission = parseInt(el.dataset.value);
+  calculate();
+}
+function calculate() {
+  const d = deplacement[state.dest];
+  const coutCaviar = (state.grammage / 500) * caviarPrix[state.caviar];
+  const coutStaff  = state.staff * state.duree * 150;
+  const hotelCheck = document.getElementById('hotel-check');
+  const hotelCost  = (state.dest !== 'paris' && hotelCheck && hotelCheck.checked) ? 300 : 0;
+  const coutDep    = state.dest === 'paris' ? 0 : d.transport + hotelCost;
+  const blinisOn   = document.getElementById('blinis-check').checked;
+  const cremeOn    = document.getElementById('creme-check').checked;
+  const coutBlinis = blinisOn ? Math.ceil(state.convives / 30) * 10 : 0;
+  const coutCreme  = cremeOn  ? Math.ceil(state.convives / 30) * 10 : 0;
+  const totalCharges = coutCaviar + coutStaff + coutDep + coutBlinis + coutCreme;
+  const prixClient   = totalCharges * state.coeff;
+  const prixTTC      = prixClient * 1.20;
+  const parConvive   = state.convives > 0 ? prixClient / state.convives : 0;
+  const grParPers    = state.convives > 0 ? Math.round(state.grammage / state.convives) : 0;
+  const beneficeBrut = prixClient - totalCharges;
+  const montantCommission = prixClient * (state.commission / 100);
+  const beneficeApresCommission = beneficeBrut - montantCommission;
+  const margePct = prixClient > 0 ? (beneficeApresCommission / prixClient) * 100 : 0;
+  let is = 0, isTaux = '', isNote = '';
+  if (beneficeApresCommission <= 0) {
+    isTaux = '0%'; isNote = 'Aucun IS sur cette prestation — résultat nul ou négatif.';
+  } else if (beneficeApresCommission <= 42500) {
+    is = beneficeApresCommission * 0.15; isTaux = '15% (taux réduit PME)';
+    isNote = 'Taux IS réduit 15% applicable jusqu\'à 42 500€ de bénéfice imposable.';
+  } else {
+    is = 42500 * 0.15 + (beneficeApresCommission - 42500) * 0.25; isTaux = '15% + 25%';
+    isNote = '15% sur les premiers 42 500€, puis 25% au-delà.';
+  }
+  const resultatNet = beneficeApresCommission - is;
+  const netPct = prixClient > 0 ? (resultatNet / prixClient) * 100 : 0;
+  if (state.commission > 0) {
+    document.getElementById('commission-info').textContent = 'Commission ' + state.commission + '% = −' + fmt(montantCommission) + ' déduit de ton bénéfice';
+  }
+  document.getElementById('par-personne').textContent       = '→ ' + grParPers + 'g / personne';
+  document.getElementById('bd-grammage').textContent        = state.grammage;
+  document.getElementById('bd-caviar').textContent          = caviarLabel[state.caviar];
+  document.getElementById('bd-caviar-prix').textContent     = fmt(coutCaviar);
+  document.getElementById('bd-staff').textContent           = state.staff;
+  document.getElementById('bd-heures').textContent          = state.duree;
+  document.getElementById('bd-staff-prix').textContent      = fmt(coutStaff);
+  document.getElementById('bd-blinis-row').style.display    = blinisOn ? 'flex' : 'none';
+  document.getElementById('bd-blinis-conv').textContent     = state.convives;
+  document.getElementById('bd-blinis-prix').textContent     = fmt(coutBlinis);
+  document.getElementById('bd-creme-row').style.display     = cremeOn ? 'flex' : 'none';
+  document.getElementById('bd-creme-conv').textContent      = state.convives;
+  document.getElementById('bd-creme-prix').textContent      = fmt(coutCreme);
+  document.getElementById('bd-dest-label').textContent      = d.label;
+  document.getElementById('bd-dep-row').style.display       = state.dest === 'paris' ? 'none' : 'flex';
+  document.getElementById('bd-dep-prix').textContent        = fmt(coutDep);
+  document.getElementById('bd-total-ht').textContent        = fmt(totalCharges);
+  document.getElementById('bd-coeff').textContent           = state.coeff.toFixed(2);
+  document.getElementById('bd-marge').textContent           = '+' + fmt(beneficeBrut);
+  document.getElementById('prix-final').textContent         = fmt(prixClient);
+  document.getElementById('prix-ttc').textContent           = fmt(prixTTC) + ' TTC (TVA 20%)';
+  document.getElementById('prix-par-convive').textContent   = fmt(parConvive) + ' / personne';
+  document.getElementById('benefice-label').textContent     = state.commission > 0 ? 'Bénéfice net (commission déduite)' : 'Bénéfice brut';
+  document.getElementById('res-ca').textContent             = fmt(prixClient);
+  document.getElementById('res-charges').textContent        = fmt(totalCharges);
+  document.getElementById('res-benefice').textContent       = fmt(beneficeApresCommission);
+  document.getElementById('res-marge-pct').textContent      = pct(margePct) + (state.commission > 0 ? ' de marge (après commission)' : ' de marge brute');
+  document.getElementById('res-is').textContent             = fmt(is);
+  document.getElementById('res-is-taux').textContent        = isTaux;
+  document.getElementById('res-net').textContent            = fmt(resultatNet);
+  document.getElementById('res-net-pct').textContent        = pct(netPct) + ' du CA · reste en réserves SASU';
+  document.getElementById('is-note').textContent            = '⚠ ' + isNote;
+}
+
+updateEstimation();
+calculate();
+</script>
+</body>
+</html>
